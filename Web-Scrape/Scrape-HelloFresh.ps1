@@ -2,6 +2,8 @@
 $TheInput = "C:\scripts\hello_fresh_recipes.txt"
 # Designate where the .csv file will be saved
 $TheOutput = "C:\scripts\IngredientsList.csv"
+# Set the number for how many people you intend to feed
+$NumberOfPeopleToServe = 3
 
 ############################################################
 # Get the recipe list
@@ -66,13 +68,14 @@ $IngredientsList | Group-Object Items,Measurement | Select-Object Group | Where-
         $TemporaryNumber += $_.CountOf
     }
     if ($ServingSizeReg -ne "") {
-        $TemporaryNumber = $TemporaryNumber * 2
+        $TemporaryNumber = ($TemporaryNumber / 2) * $NumberOfPeopleToServe
     }
     else {
         switch ($ServingSizeNumber) {
-            3 {$TemporaryNumber = [int]($TemporaryNumber * 0.66)}
-            2 {$TemporaryNumber = ($TemporaryNumber * 2)}
-            1 {$TemporaryNumber = ($TemporaryNumber * 4)}
+            4 {$TemporaryNumber = (($TemporaryNumber * 0.25) * $NumberOfPeopleToServe)}
+            3 {$TemporaryNumber = (($TemporaryNumber * 0.33) * $NumberOfPeopleToServe)}
+            2 {$TemporaryNumber = (($TemporaryNumber / 2) * $NumberOfPeopleToServe)}
+            1 {$TemporaryNumber = ($TemporaryNumber * $NumberOfPeopleToServe)}
             Default {
                 # Do nothing
             }
