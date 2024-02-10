@@ -47,12 +47,19 @@ $TheRecipeList | ForEach-Object {
 $RecipeIngredientsList | Where-Object {($_ -notmatch '(unit\s)?Kosher Salt') -and ($_ -notmatch '(unit\s)?Pepper')} | ForEach-Object {
     $TempTable = [PSCustomObject]@{}
     $TempNumber = 0
-    $RegexMatch = ($_ | Select-String -Pattern '(\S+)\s(\w+)\s(.*)')
-    Switch ($RegexMatch.Matches.Groups[1].Value) {
-        "¼" {$TempNumber = 0.25}
-        "½" {$TempNumber = 0.5}
-        "¾" {$TempNumber = 0.75}
-        Default {$TempNumber = $_}
+    # write-Output "the THING = $($_)"
+    $RegexMatch = ([String]($_) | Select-String -Pattern '(\d+|\d+\.\d+|\S)\s(\w+)\s(.*)')
+    # Write-Output "It's this long: $($RegexMatch.Matches.Groups[1].Value.length)"
+    if ($RegexMatch.Matches.Groups[1].Value.length -eq 1) {
+        Switch ([byte][char]($RegexMatch.Matches.Groups[1].Value)) {
+            "188" {$TempNumber = 0.25}
+            "189" {$TempNumber = 0.5}
+            "190" {$TempNumber = 0.75}
+            Default {$TempNumber = $RegexMatch.Matches.Groups[1].Value}
+        }
+    }
+    else {
+        $TempNumber = $RegexMatch.Matches.Groups[1].Value
     }
     $TempTable | Add-Member -MemberType NoteProperty -Name 'CountOf' -Value "$TempNumber"
     $TempTable | Add-Member -MemberType NoteProperty -Name 'Measurement' -Value "$($RegexMatch.Matches.Groups[2].Value)"
