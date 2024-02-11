@@ -1,4 +1,42 @@
+# Script Name: search-urlscan.ps1
+# Script Purpose: Searches URLScan based on given criteria, dumps results to .json file(s)
+# Created On: 02/10/2024
+# Created By: Coleman Dole
+
 function Search-URLScan {
+    <#
+    .SYNOPSIS
+    Uses the /search/ endpoint from URLScan.io's API. Counts the total number of results received, outputs them to .json file(s).
+
+    .DESCRIPTION
+    A quick weekend project to create a PowerShell function that uses URLScan's search feature.
+    Supply it with an API key from urlscan.io, a search query, maximum results you want to retrieve, and a folder to dump result files to.
+    The result files are stored in .json so if you want to use PowerShell to loop on them, be sure to check the | ConvertFrom-Json commandlet.
+
+    .PARAMETER apiKey
+    *REQUIRED* [STRING] URLScan.io API Key. If you do not have one, sign up at urlscan.io for a free API key. This script accommodates for the free tier (max return 1,000). If you're not on the free tier be sure to change the $sizeLimit variable.
+
+    .PARAMETER query
+    *REQUIRED* [STRING] A query to send. Check the official documentation here: https://urlscan.io/docs/search/ for more information. Note that prepending with q= is not required and will be added automatically if your input does not start with it. Examples include:
+    page.url:"CD/New"
+    q=task.tags:cryptoscam
+    task.tags:phishing
+
+    .PARAMETER maxLimit
+    *REQUIRED* [INTEGER] Maximum number of results to pull. Assuming the query has an endless supply, such as "task.tags:phishing"
+
+    .PARAMETER outputLocation
+    *REQUIRED* [STRING] A valid folder path to store the result .json file(s) in.
+
+    .EXAMPLE
+    Search-URLScan -apiKey "x" -query 'task.tags:cryptoscam' -maxLimit 11500 -outputLocation "C:\Scripts\urlscanit"
+
+    .NOTES
+    Be sure to chekc URLScan.io's documentation for API usage, Search usage, and more.
+    For example, after 10,000 results URLScan continues to flag "has_more=True", which this script accommodates for.
+    However, if there are exactly <result size limit> results and it flags as "has_more=False", this script will terminate.
+    You may need to tinker with things to get it just right. This is not a perfect function/module.
+    #>
     param (
         [Parameter(Mandatory)]
         [String]$apiKey,
@@ -90,4 +128,4 @@ function Search-URLScan {
 }
 
 # Example usage. Be sure to replace the API key with your actual API key.
-Search-URLScan -apiKey "x" -query "task.tags:cryptoscam" -maxLimit 11500 -outputLocation "C:\Scripts\urlscanit"
+Search-URLScan -apiKey "x" -query 'task.tags:cryptoscam' -maxLimit 11500 -outputLocation "C:\Scripts\urlscanit"
