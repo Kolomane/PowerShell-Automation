@@ -38,11 +38,9 @@ function Search-URLScan {
         for ($tempInt = 1; ($tempInt -le $theIterations) -and ($keepGoing) -and (($error | Measure-Object).Count -eq 0); $tempInt++) {
             if (($tempInt -eq 1) -and ($maxLimit -lt $sizeLimit)) {
                 # If it's the first time running, grab the full 1,000
-                Write-Output "1st and less than thingy"
                 $theQuery = "$($baseUrl)$($theEndpoint)?$($query)&size=$maxLimit"
             }
             else {
-                Write-Output "2nd and we kept going"
                 if ($runningTotal -gt 0) {
                     if (($maxLimit / $runningTotal) | Select-String '1\.\d+') {
                         # Check if it's on the last loop; Doing some math and Regex'ing for the condition
@@ -66,7 +64,7 @@ function Search-URLScan {
                 $theQuery = "$($baseUrl)$($theEndpoint)?$($query)&size=$theSize&search_after=$theAfter"
             }
             try {
-                Write-Output "theQuery = $($theQuery)"
+                # Write-Output "theQuery = $($theQuery)"
                 $theSearch = Invoke-RestMethod -Method Get -Uri $theQuery -Headers $theHeader -ContentType application/json # Run the search
                 $keepGoing = [bool]$theSearch.has_more # Reset conditional, if we should keep going/looping or not
                 $resultCount = ($theSearch.results | Measure-Object).Count # Capture the count of result objects
@@ -92,4 +90,4 @@ function Search-URLScan {
 }
 
 # Example usage. Be sure to replace the API key with your actual API key.
-Search-URLScan -apiKey "x" -query "task.tags:cryptoscam" -maxLimit 115 -outputLocation "C:\Scripts\urlscanit"
+Search-URLScan -apiKey "x" -query "task.tags:cryptoscam" -maxLimit 1000 -outputLocation "C:\Scripts\urlscanit"
