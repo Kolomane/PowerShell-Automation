@@ -16,7 +16,6 @@ function Search-URLScan {
     $baseUrl = 'https://urlscan.io/api/v1' # Static variable for the base URL
     $theEndpoint = '/search/' # Static variable for the endpoint... Yes it's more lines of code but it's a bit more malleable this way :)
     $sizeLimit = 1000 # Max limit for a single Search API call... At least with the Free version of URLScan
-    $maxDailyLimit = 10000 # Daily max limit for URL Scan searching... At least with the Free version of URLScan
     if (-Not($query | Select-String 'q=.*')) {
         $query = "q=$($query)"
     }
@@ -25,7 +24,7 @@ function Search-URLScan {
     # There's a lot going on in the conditional for this IF statement...
     # # IF the MaxLimit specified is within the DAILY maximum limit (see above)
     # # AND IF the output file path is a valid path  -and ((Test-Path $outputLocation))
-    if ((($maxLimit / $maxDailyLimit) -le 1) -and (Test-Path $outputLocation)) {
+    if (Test-Path $outputLocation) {
         $theIterations = [math]::Ceiling($maxLimit / $sizeLimit) # Split the user-defined limit against the API size limit
         $theSize = 1000
         $runningTotal = 0
@@ -42,7 +41,7 @@ function Search-URLScan {
             }
             else {
                 if ($runningTotal -gt 0) {
-                    if (($maxLimit / $runningTotal) | Select-String '1\.\d+') {
+                    if (($maxLimit / $runningTotal) | Select-String '^1\.\d+') {
                         # Check if it's on the last loop; Doing some math and Regex'ing for the condition
                         $theSize = $maxLimit - $runningTotal # Trimming down to only searching against the difference
                     }
@@ -67,9 +66,10 @@ function Search-URLScan {
                 # Write-Output "theQuery = $($theQuery)"
                 $theSearch = Invoke-RestMethod -Method Get -Uri $theQuery -Headers $theHeader -ContentType application/json # Run the search
                 $keepGoing = [bool]$theSearch.has_more # Reset conditional, if we should keep going/looping or not
+                # Write-Output "HAS_MORE FLAG - $($theSearch.has_more) | BOOL IT = $([bool]$theSearch.has_more) | KEEPGOING = $($keepGoing)`r`n`r`nTHE DATA $($theSearch)"
                 $resultCount = ($theSearch.results | Measure-Object).Count # Capture the count of result objects
                 $runningTotal += $resultCount # Add the total to runningTotal
-                Write-Output "Finished Search $($tempInt)/$($theIterations) with $($resultCount) results.`r`n - More search results after this: $($keepGoing)`r`n - Running Total: $($runningTotal)"
+                Write-Output "Finished Search $($tempInt)/$($theIterations) with $($resultCount) results.`r`n - Total possible(?): $($theSearch.total)`r`n - Total taken this batch(?): $($theSearch.took)`r`n - More search results after this: $($keepGoing)`r`n - Running Total: $($runningTotal)"
                 Write-Output "Saving results to: $($outputLocation)\search_results_$($tempInt).json"
                 if ($theSize -lt $sizeLimit) {
                     # Output the results to a file; Only selecting the first N (here it is $theSize), since it's the remainder of what's requested
@@ -90,4 +90,4 @@ function Search-URLScan {
 }
 
 # Example usage. Be sure to replace the API key with your actual API key.
-Search-URLScan -apiKey "x" -query "task.tags:cryptoscam" -maxLimit 1000 -outputLocation "C:\Scripts\urlscanit"
+Search-URLScan -apiKey "x" -query "task.tags:cryptoscam" -maxLimit 11500 -outputLocation "C:\Scripts\urlscanit"
